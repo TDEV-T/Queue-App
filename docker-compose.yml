@@ -5,12 +5,19 @@ services:
     image: postgres:15-alpine
     container_name: queue_db
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - .postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=queue_user
       - POSTGRES_PASSWORD=supersecretpassword
       - POSTGRES_DB=queue_db
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U queue_user -d queue_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     container_name: queue_backend
@@ -18,19 +25,15 @@ services:
       context: .
       dockerfile: queue-service/Dockerfile
     depends_on:
-      - db
+      db: 
+        condition: service_healthy
     ports:
       - "5001:8080"
     environment:
-      - ConnectionStrings__QueueDbContext=Host=db;Database=queuedb;Username=devuser;Password=devpassword
+      - ConnectionStrings__QueueDbContext=Host=db;Database=queue_db;Username=queue_user;Password=supersecretpassword
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-    command: >
-      sh -c "sleep 10 && 
-             dotnet tool install --global dotnet-ef && 
-             export PATH=\"$PATH:/root/.dotnet/tools\" && 
-             dotnet ef database update && 
-             dotnet QueueService.dll"
+    command: ["dotnet", "QueueService.dll"]
 
   frontend:
     container_name: queue_frontend
@@ -43,4 +46,4 @@ services:
       - "4200:80"
 
 volumes:
-  postgres_data:
+  .postgres_data:

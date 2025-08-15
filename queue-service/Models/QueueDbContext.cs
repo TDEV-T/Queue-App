@@ -17,8 +17,6 @@ public partial class QueueDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasPostgresEnum("ticket_status", new[] { "Waiting", "Called", "Finished", "Cancelled" });
-
         modelBuilder.Entity<QueueState>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("queue_states_pkey");
@@ -26,17 +24,23 @@ public partial class QueueDbContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.LastUpdatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.Version).HasDefaultValue(1);
+
+
+            entity.HasData(
+                new QueueState
+                {
+                    Id = 1,
+                    CurrentPrefix = 'A',
+                    CurrentNumber = -1,
+                    Version = 1,
+                }
+            );
         });
 
-        modelBuilder.Entity<Ticket>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("tickets_pkey");
-
-            entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-            entity.Property(e => e.IssuedAt).HasDefaultValueSql("now()");
-        });
 
         OnModelCreatingPartial(modelBuilder);
+
+
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

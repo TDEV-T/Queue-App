@@ -8,12 +8,10 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{environment}.json", optional: true);
-
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -24,7 +22,6 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
 builder.Services.AddScoped<IQueueService, QueueService.Services.Implementations.QueueService>();
 builder.Services.AddScoped<IQueueStateRepository, QueueStateRepository>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
@@ -32,11 +29,26 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddDbContext<QueueDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("QueueDbContext"),
-        npgsqlOptions => npgsqlOptions.MigrationsAssembly("queue-service")
+        npgsqlOptions => npgsqlOptions.MigrationsAssembly("QueueService")
     )
 );
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var dbContext = services.GetRequiredService<QueueDbContext>();
+        await dbContext.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
