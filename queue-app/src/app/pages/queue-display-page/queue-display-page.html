@@ -1,0 +1,34 @@
+@if (ticket){
+<div class="w-full bg-white h-screen shadow-md overflow-hidden">
+  <div class="bg-green-600 p-3">
+    <p class="text-white text-center font-semibold">IT 05-2</p>
+  </div>
+
+  <div
+    class="p-8 sm:p-12 flex flex-col items-center justify-between min-h-[calc(100vh-150px)]"
+  >
+    <div
+      class="flex-grow flex flex-col items-center justify-center text-center"
+    >
+      <h1 class="text-2xl text-gray-800 font-semibold">หมายเลขคิวของคุณคือ</h1>
+
+      <p class="text-8xl sm:text-9xl font-bold text-black my-4">
+        {{ ticket.ticket_number }}
+      </p>
+      <p class="text-base sm:text-lg text-gray-600">
+        วันที่ : {{ ticket.issued_at | date : "dd/MM/yyyy" }} เวลา
+        {{ ticket.issued_at | date : "HH:mm" }} น.
+      </p>
+    </div>
+    <div class="mt-8">
+      <a
+        routerLink="/"
+        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg shadow transition-colors duration-300 cursor-pointer"
+      >
+        กลับไปหน้ารับบัตรคิว
+      </a>
+    </div>
+  </div>
+</div>
+
+}
