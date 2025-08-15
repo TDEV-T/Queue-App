@@ -1,0 +1,41 @@
+# General
+.DS_Store
+Thumbs.db
+
+# User-specific files
+*.user
+*.suo
+
+# Rider / JetBrains
+.idea/
+
+# Visual Studio
+.vs/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Don't commit development app settings
+appsettings.Development.json
+
+# EF Core migrations (optional, uncomment if you don't want to source control migrations)
+# **/Migrations/*
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# Editor-specific
+.vscode/
+!/.vscode/settings.json
+!/.vscode/tasks.json
+!/.vscode/launch.json
+!/.vscode/extensions.json
+
+# Docker
+docker-compose.override.yml

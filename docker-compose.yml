@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: queue_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=devpassword
+      - POSTGRES_DB=queuedb
+    restart: unless-stopped
+
+  backend:
+    container_name: queue_backend
+    build:
+      context: .
+      dockerfile: queue-service/Dockerfile
+    depends_on:
+      - db
+    ports:
+      - "5001:8080"
+    environment:
+      - ConnectionStrings__QueueDbContext=Host=db;Database=queuedb;Username=devuser;Password=devpassword
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+    command: >
+      sh -c "sleep 10 && 
+             dotnet tool install --global dotnet-ef && 
+             export PATH=\"$PATH:/root/.dotnet/tools\" && 
+             dotnet ef database update && 
+             dotnet QueueService.dll"
+
+  frontend:
+    container_name: queue_frontend
+    build:
+      context: ./queue-app
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  postgres_data:
